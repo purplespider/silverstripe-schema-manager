@@ -25,20 +25,26 @@ class BlogPostingSchema extends Schema
             ],
         ];
 
-        if ($post->hasField('PublishDate') && $post->PublishDate) {
-            $data['datePublished'] = $post->PublishDate;
-        } elseif ($post->Created) {
-            $data['datePublished'] = $post->Created;
+        $datePublished = self::formatDateTime(
+            ($post->hasField('PublishDate') ? $post->PublishDate : null) ?: $post->Created
+        );
+
+        if ($datePublished) {
+            $data['datePublished'] = $datePublished;
         }
 
-        if ($post->LastEdited) {
-            $data['dateModified'] = $post->LastEdited;
+        $dateModified = self::formatDateTime($post->LastEdited);
+
+        if ($dateModified) {
+            $data['dateModified'] = $dateModified;
         }
 
-        if ($post->hasField('Summary') && $post->Summary) {
-            $data['description'] = $post->Summary;
-        } elseif ($post->hasField('MetaDescription') && $post->MetaDescription) {
-            $data['description'] = $post->MetaDescription;
+        // Blog summaries are HTMLText, so strip the markup
+        $description = ($post->hasField('Summary') ? self::plainText($post->Summary) : null)
+            ?: ($post->hasField('MetaDescription') ? self::plainText($post->MetaDescription) : null);
+
+        if ($description) {
+            $data['description'] = $description;
         }
 
         if ($post->hasMethod('FeaturedImage')) {

@@ -26,12 +26,16 @@ class WebPageSchema extends Schema
             $data['description'] = $page->MetaDescription;
         }
 
-        if ($page->Created) {
-            $data['datePublished'] = $page->Created;
+        $datePublished = self::formatDateTime($page->Created);
+
+        if ($datePublished) {
+            $data['datePublished'] = $datePublished;
         }
 
-        if ($page->LastEdited) {
-            $data['dateModified'] = $page->LastEdited;
+        $dateModified = self::formatDateTime($page->LastEdited);
+
+        if ($dateModified) {
+            $data['dateModified'] = $dateModified;
         }
 
         return new static($data);
