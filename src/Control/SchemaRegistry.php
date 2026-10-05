@@ -2,7 +2,6 @@
 
 namespace DorsetDigital\SchemaManager\Control;
 
-use DorsetDigital\SchemaManager\Model\Schema\BreadcrumbListSchema;
 use DorsetDigital\SchemaManager\Model\Schema\FAQPageSchema;
 use DorsetDigital\SchemaManager\Model\Schema\WebPageSchema;
 use DorsetDigital\SchemaManager\Model\Schema\Schema;
@@ -12,9 +11,14 @@ use SilverStripe\Control\Director;
 
 class SchemaRegistry
 {
-    private static array $entities = [];
-
-    private static array $schemas = [];
+    /**
+     * Registrations per entity ID, in order: typed Schema objects and raw
+     * arrays. Typed schemas are kept as objects and only read when the graph
+     * is built, so changes made after registration are not lost.
+     *
+     * @var array<string, array<Schema|array>>
+     */
+    private static array $layers = [];
 
     public static function add(Schema $schema): void
     {
@@ -24,21 +28,12 @@ class SchemaRegistry
             return;
         }
 
-        self::$schemas[$id] = $schema;
-        self::addEntity($id, $schema->toArray());
+        self::$layers[$id][] = $schema;
     }
 
     public static function addEntity(string $id, array $data): void
     {
-        if (isset(self::$entities[$id])) {
-            self::$entities[$id] = array_replace_recursive(
-                self::$entities[$id],
-                $data
-            );
-            return;
-        }
-
-        self::$entities[$id] = $data;
+        self::$layers[$id][] = $data;
     }
 
     /**
@@ -106,58 +101,70 @@ class SchemaRegistry
         ]);
     }
 
+    /**
+     * Builds the graph from the current state of every registration. Nothing
+     * is cached or written back, so the graph can be built any number of
+     * times and always reflects the latest data.
+     */
     public static function getGraph(): array
     {
-        self::resolveRelationships();
+        $entities = [];
+        $webPageIDs = [];
 
-        return array_values(self::$entities);
+        // Later registrations under the same ID are merged over earlier ones
+        foreach (self::$layers as $id => $layers) {
+            $entities[$id] = array_replace_recursive(...array_map(
+                fn (Schema|array $layer): array => $layer instanceof Schema ? $layer->toArray() : $layer,
+                $layers
+            ));
+
+            foreach ($layers as $layer) {
+                if ($layer instanceof WebPageSchema) {
+                    $webPageIDs[] = $id;
+                    break;
+                }
+            }
+        }
+
+        foreach ($webPageIDs as $webPageID) {
+            self::resolveWebPageRelationships($webPageID, $entities);
+        }
+
+        return array_values($entities);
     }
 
-    private static function resolveRelationships(): void
+    /**
+     * Links a WebPage to its breadcrumb and main entity. When several
+     * entities claim to be the main entity of the page, the last one
+     * registered wins and the others become part of the page instead.
+     */
+    private static function resolveWebPageRelationships(string $webPageID, array &$entities): void
     {
-        $webPages = [];
+        $pageURL = substr($webPageID, 0, -strlen('#webpage'));
+        $breadcrumbID = $pageURL . '#breadcrumb';
+        $mainEntityID = null;
 
-        foreach (self::$schemas as $schema) {
-            if ($schema instanceof WebPageSchema) {
-                $webPages[$schema->getID()] = $schema;
-            }
+        if (($entities[$breadcrumbID]['@type'] ?? null) === 'BreadcrumbList') {
+            $entities[$webPageID]['breadcrumb'] = ['@id' => $breadcrumbID];
         }
 
-        foreach ($webPages as $webPageID => $webPage) {
-            $pageURL = substr($webPageID, 0, -strlen('#webpage'));
-            $mainEntity = null;
-            $breadcrumb = null;
-
-            foreach (self::$schemas as $schema) {
-                if ($schema === $webPage) {
-                    continue;
-                }
-
-                if ($schema instanceof BreadcrumbListSchema
-                    && $schema->getID() === $pageURL . '#breadcrumb'
-                ) {
-                    $breadcrumb = $schema;
-                    continue;
-                }
-
-                if ($schema->isMainEntityOfPage($pageURL)) {
-                    if ($mainEntity instanceof Schema) {
-                        $mainEntity->setIsPartOfPage($pageURL);
-                    }
-
-                    $mainEntity = $schema;
-                }
+        foreach ($entities as $id => $entity) {
+            if ($id === $webPageID
+                || ($entity['mainEntityOfPage']['@id'] ?? null) !== $webPageID
+            ) {
+                continue;
             }
 
-            $webPage->setMainEntity($mainEntity);
-            $webPage->setBreadcrumb($breadcrumb);
+            if ($mainEntityID !== null) {
+                unset($entities[$mainEntityID]['mainEntityOfPage']);
+                $entities[$mainEntityID]['isPartOf'] = ['@id' => $webPageID];
+            }
+
+            $mainEntityID = $id;
         }
 
-        foreach (self::$schemas as $id => $schema) {
-            self::$entities[$id] = array_replace_recursive(
-                $schema->toArray(),
-                self::$entities[$id] ?? []
-            );
+        if ($mainEntityID !== null) {
+            $entities[$webPageID]['mainEntity'] = ['@id' => $mainEntityID];
         }
     }
 
@@ -171,7 +178,7 @@ class SchemaRegistry
 
     public static function getJSON(): string
     {
-        if (!self::$entities) {
+        if (!self::$layers) {
             return '';
         }
 
@@ -183,7 +190,6 @@ class SchemaRegistry
 
     public static function flush(): void
     {
-        self::$entities = [];
-        self::$schemas = [];
+        self::$layers = [];
     }
 }
