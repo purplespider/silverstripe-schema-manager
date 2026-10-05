@@ -1,6 +1,6 @@
 {
     "name": "dorsetdigital/silverstripe-schema-manager",
-    "description": "Structured data schema registry and helpers for Silverstripe CMS 6.",
+    "description": "Structured data schema registry and helpers for Silverstripe CMS 5.3 and 6.",
     "type": "silverstripe-vendormodule",
     "license": "BSD-3-Clause",
     "authors": [
@@ -17,12 +17,12 @@
         "seo"
     ],
     "require": {
-        "php": "^8.3",
-        "silverstripe/framework": "^6",
-        "silverstripe/cms": "^6",
-        "silverstripe/siteconfig": "^6",
-        "silverstripe/assets": "^3",
-        "silverstripe/asset-admin": "^3"
+        "php": "^8.1",
+        "silverstripe/framework": "^5.3 || ^6",
+        "silverstripe/cms": "^5 || ^6",
+        "silverstripe/siteconfig": "^5 || ^6",
+        "silverstripe/assets": "^2 || ^3",
+        "silverstripe/asset-admin": "^2 || ^3"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.3",
