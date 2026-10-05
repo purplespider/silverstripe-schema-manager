@@ -10,5 +10,9 @@ SilverStripe\SiteConfig\SiteConfig:
     - DorsetDigital\SchemaManager\Extension\SiteConfigSchemaExtension
 
 SilverStripe\Core\Injector\Injector:
-  SilverStripe\View\Requirements_Backend:
-    class: DorsetDigital\SchemaManager\View\SchemaRequirementsBackend
+  SchemaManagerMiddleware:
+    class: DorsetDigital\SchemaManager\Control\Middleware\SchemaMiddleware
+  SilverStripe\Control\Director:
+    properties:
+      Middlewares:
+        SchemaManagerMiddleware: '%$SchemaManagerMiddleware'
