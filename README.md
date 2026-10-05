@@ -39,7 +39,7 @@ https://example.com/about/#webpage
 https://example.com/about/#breadcrumb
 ```
 
-The JSON-LD is inserted automatically with Silverstripe Requirements. No template change is required.
+The JSON-LD is inserted automatically into the `<head>` of the HTML page response once it has been rendered, so schema registered from templates is included. No template change is required. Other HTML rendered during the request, such as emails, is left untouched.
 
 ## Automatic WebPage schema
 
@@ -174,6 +174,8 @@ _config/
   schema-manager.yml
 src/
   Control/
+    Middleware/
+      SchemaMiddleware.php
     SchemaRegistry.php
   Extension/
     BlogPostSchemaExtension.php
