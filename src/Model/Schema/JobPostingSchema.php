@@ -8,13 +8,14 @@ class JobPostingSchema extends Schema
 {
     public static function create(string $url, string $title, ?string $description = null): static
     {
+        $pageURL = self::pageURL($url);
         $url = rtrim($url, '/') . '/';
         $baseURL = rtrim(Director::absoluteBaseURL(), '/') . '/';
 
         $data = [
             '@type' => 'JobPosting',
             '@id' => $url . '#jobposting',
-            'url' => $url,
+            'url' => $pageURL,
             'title' => $title,
             'isPartOf' => [
                 '@id' => $url . '#webpage',
