@@ -133,7 +133,7 @@ The bundled Blog integration uses this mechanism, so it also provides a referenc
 
 ### `SchemaRegistry::add(Schema $schema)`
 
-Registers a typed schema object. It can be called directly from controllers or other application code. Relationships are resolved when the graph is rendered, so schemas registered independently still participate in automatic `WebPage.mainEntity` and breadcrumb relationship resolution.
+Registers a typed schema object. It can be called directly from controllers or other application code. The object is read when the graph is rendered, so changes made to it after registration are included. Relationships are also resolved at that point, so schemas registered independently still participate in automatic `WebPage.mainEntity` and breadcrumb relationship resolution.
 
 ### `SchemaRegistry::addEntity(string $id, array $data)`
 
