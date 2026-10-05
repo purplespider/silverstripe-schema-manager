@@ -9,6 +9,8 @@ use SilverStripe\Dev\SapphireTest;
 
 class SchemaRegistryTest extends SapphireTest
 {
+    protected $usesDatabase = true;
+
     protected function tearDown(): void
     {
         SchemaRegistry::flush();
@@ -113,10 +115,10 @@ class SchemaRegistryTest extends SapphireTest
         $this->assertCount(2, $graph[0]['itemListElement']);
         $this->assertSame(1, $graph[0]['itemListElement'][0]['position']);
         $this->assertSame('About', $graph[0]['itemListElement'][0]['name']);
-        $this->assertStringEndsWith('/about/', $graph[0]['itemListElement'][0]['item']);
+        $this->assertSame($section->AbsoluteLink(), $graph[0]['itemListElement'][0]['item']);
         $this->assertSame(2, $graph[0]['itemListElement'][1]['position']);
         $this->assertSame('Our team', $graph[0]['itemListElement'][1]['name']);
-        $this->assertStringEndsWith('/about/team/', $graph[0]['itemListElement'][1]['item']);
+        $this->assertSame($page->AbsoluteLink(), $graph[0]['itemListElement'][1]['item']);
     }
 
     public function testSingleBreadcrumbIsNotAdded(): void

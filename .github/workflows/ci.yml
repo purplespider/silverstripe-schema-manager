@@ -37,5 +37,13 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
+      # Silverstripe CMS expects the project to provide Page and PageController
+      - name: Create project Page classes
+        run: |
+          mkdir -p app/src
+          touch app/_config.php
+          printf '<?php\n\nuse SilverStripe\\CMS\\Model\\SiteTree;\n\nclass Page extends SiteTree\n{\n}\n' > app/src/Page.php
+          printf '<?php\n\nuse SilverStripe\\CMS\\Controllers\\ContentController;\n\nclass PageController extends ContentController\n{\n}\n' > app/src/PageController.php
+
       - name: Run tests
         run: vendor/bin/phpunit
