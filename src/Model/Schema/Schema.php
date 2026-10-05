@@ -2,6 +2,8 @@
 
 namespace DorsetDigital\SchemaManager\Model\Schema;
 
+use SilverStripe\Control\Controller;
+
 abstract class Schema
 {
     public function __construct(protected array $data)
@@ -57,5 +59,15 @@ abstract class Schema
     {
         $this->data = array_replace_recursive($this->data, $data);
         return $this;
+    }
+
+    /**
+     * Formats a page URL the way the site serves it, following
+     * Controller.add_trailing_slash. Entity IDs keep their trailing slash
+     * so they don't change with that setting.
+     */
+    public static function pageURL(string $url): string
+    {
+        return Controller::normaliseTrailingSlash($url);
     }
 }

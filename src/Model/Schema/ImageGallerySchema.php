@@ -6,6 +6,7 @@ class ImageGallerySchema extends Schema
 {
     public static function create(string $url, ?string $name = null, ?string $description = null, ?string $identifier = null): static
     {
+        $pageURL = self::pageURL($url);
         $url = rtrim($url, '/') . '/';
 
         $fragment = 'imagegallery' . ($identifier ? '-' . trim($identifier, '#-') : '');
@@ -13,7 +14,7 @@ class ImageGallerySchema extends Schema
         $data = [
             '@type' => 'ImageGallery',
             '@id' => $url . '#' . $fragment,
-            'url' => $url,
+            'url' => $pageURL,
             'isPartOf' => [
                 '@id' => $url . '#webpage',
             ],

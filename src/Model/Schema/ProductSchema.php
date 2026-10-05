@@ -6,12 +6,13 @@ class ProductSchema extends Schema
 {
     public static function create(string $url, string $name, ?string $description = null): static
     {
+        $pageURL = self::pageURL($url);
         $url = rtrim($url, '/') . '/';
 
         $data = [
             '@type' => 'Product',
             '@id' => $url . '#product',
-            'url' => $url,
+            'url' => $pageURL,
             'name' => $name,
             'isPartOf' => [
                 '@id' => $url . '#webpage',

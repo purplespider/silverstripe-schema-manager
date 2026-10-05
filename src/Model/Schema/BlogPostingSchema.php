@@ -9,13 +9,14 @@ class BlogPostingSchema extends Schema
 {
     public static function fromBlogPost(DataObject $post): static
     {
-        $url = rtrim($post->AbsoluteLink(), '/') . '/';
+        $pageURL = self::pageURL($post->AbsoluteLink());
+        $url = rtrim($pageURL, '/') . '/';
         $baseURL = rtrim(Director::absoluteBaseURL(), '/') . '/';
 
         $data = [
             '@type' => 'BlogPosting',
             '@id' => $url . '#blogposting',
-            'url' => $url,
+            'url' => $pageURL,
             'headline' => $post->Title,
             'isPartOf' => [
                 '@id' => $baseURL . '#website',

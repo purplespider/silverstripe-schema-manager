@@ -9,13 +9,14 @@ class WebPageSchema extends Schema
 {
     public static function fromPage(SiteTree $page): static
     {
-        $url = rtrim($page->AbsoluteLink(), '/') . '/';
+        $pageURL = self::pageURL($page->AbsoluteLink());
+        $url = rtrim($pageURL, '/') . '/';
         $baseURL = rtrim(Director::absoluteBaseURL(), '/') . '/';
 
         $data = [
             '@type' => 'WebPage',
             '@id' => $url . '#webpage',
-            'url' => $url,
+            'url' => $pageURL,
             'name' => $page->Title,
             'isPartOf' => [
                 '@id' => $baseURL . '#website',
